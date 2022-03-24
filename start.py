@@ -1,5 +1,3 @@
-from base64 import encode
-from operator import delitem
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -125,8 +123,8 @@ if __name__ == '__main__':
     time_start=time.time()
 
     cols = ['index','id','cust_name','sale_date','prod_key','quantity']
-    #df =  pd.read_csv('sales_dell.txt', delimiter='\t',nrows = 14000,names = cols,encoding='utf8')
-    df = pd.read_csv('grass_cut.txt', delimiter=',',nrows = 20000,names = cols,encoding='utf-8')
+    #df =  pd.read_csv('sales.txt', delimiter='\t',nrows = 14000,names = cols,encoding='utf8')
+    df = pd.read_csv('sales.txt', delimiter=',',nrows = 20000,names = cols,encoding='utf-8')
     #train_vec = pd.read_csv('ua.base', delimiter='\t', names = cols)
     #print(df['sale_date'])
     #df['sale_date'] = df['sale_date'].map(lambda x: (int(x[3:5]) // 4) + 1)
