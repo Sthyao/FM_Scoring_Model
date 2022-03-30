@@ -1,3 +1,4 @@
+from hmac import trans_5C
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -5,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from scipy.sparse import csr
 import time
+import random
 
 #Data type:Line OrderID, Tag UID, ItemID,so on, Estimator Rank or Binary
 #SVG
@@ -108,10 +110,53 @@ def vec_transform(dic,y=None,g=3):
         g_count1 += 1
         #print(g_count)
 
+    if y != None:
+        for i in range(n):
+            x_mat[i][-1] = y[i]
+
+    return x_mat
+
+def vec_transform_b(dic,y=None,g=2):
+    mean_quantity = 2.93
+    ny = 0
+    ng = []
+    n_u = len(set(dic['cust_name']))
+    n_i = len(set(dic['prod_key']))
+    i = 0
+
+    for vue in dic.values():
+        ng.append(list(set(vue)))
+    n = len(vue)
+    for i in range(g):
+        ny += len(ng[i])
+
+    print("U_count:",n_u)
+    print("I_count:",n_i)
+    x_mat = np.zeros((int(n*1.4),ny+2))
+
+    g_count = 0
+    g_count1 = 0
+    for v in dic.values():
+        for i in range(len(v)):
+            x_mat[i][ng[g_count1].index(v[i]) + g_count] += 1
+        g_count += len(set(v)) 
+        g_count1 += 1
+
     
     for i in range(n):
-        x_mat[i][-1] = y[i]
-
+        #x_mat[i][-1] = y[i]
+        x_mat[i][-1] = 1
+        x_mat[i][-2] = y[i]
+    random_part = int(n*1.4) - i - 1
+    random_count = 0
+    while(random_count < random_part):
+        temp_u = random.randint(1, n_u)
+        temp_i = random.randint(1, n_i)
+        x_mat[n+random_count][temp_u-1] = 1
+        x_mat[n+random_count][n_u + temp_i - 1] = 1
+        x_mat[n+random_count][-2] = mean_quantity
+        random_count += 1
+        
     return x_mat
 
 def season_judge(str):
@@ -123,26 +168,21 @@ if __name__ == '__main__':
     time_start=time.time()
 
     cols = ['index','id','cust_name','sale_date','prod_key','quantity']
-    #df =  pd.read_csv('sales.txt', delimiter='\t',nrows = 14000,names = cols,encoding='utf8')
     df = pd.read_csv('sales.txt', delimiter=',',nrows = 20000,names = cols,encoding='utf-8')
-    #train_vec = pd.read_csv('ua.base', delimiter='\t', names = cols)
-    #print(df['sale_date'])
-    #df['sale_date'] = df['sale_date'].map(lambda x: (int(x[3:5]) // 4) + 1)
 
     y_train_overview = df['quantity'].values
-    #train_mat= vectorize_dic({'cust_name':df['cust_name'].values,'sale_date':df['sale_date'],'prod_key':df['prod_key'].values},y_train_overview,n=len(df.index),g=3)
-    train_mat = vec_transform({'cust_name':df['cust_name'].values,'sale_date':df['sale_date'],'prod_key':df['prod_key'].values}, y_train_overview,g=3)
-    #np.savetxt('temp.csv',train_mat,delimiter=',')
+    #train_mat = vec_transform({'cust_name':df['cust_name'].values,'sale_date':df['sale_date'],'prod_key':df['prod_key'].values}, y_train_overview,g=3)
+    #function vec_transform_b() is used for transfor list to data used for dichotomous judgment, and add obfuscated data
+    train_mat = vec_transform_b({'cust_name':df['cust_name'].values,'prod_key':df['prod_key'].values},y_train_overview,k=2)
 
     X_train, X_test, Y_train, Y_test = train_test_split(train_mat[:, :-1],train_mat[:, -1], test_size = 0.3, random_state = 123)
 
     print(X_train.shape)
 
     all_FM_params = FM_SGD(X=X_train, Y=Y_train, k=3,alpha=0.003, iter=100)
-    #8 is best
+    #set k = 8 is best
     w0, W, V = all_FM_params[-1] 
     predicts = FM_Pred(X=X_test, w0=w0, W=W, V=V)
-    #print(Y_test)
     np.savetxt('w0.csv',w0,delimiter=',')
     np.savetxt('W.csv',W,delimiter=',')
     np.savetxt('V.csv',V,delimiter=',')
