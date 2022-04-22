@@ -10,7 +10,7 @@ Including:<br />
 3 Linear or binary problem<br />
 
 <br />
-## Another work<br />
+## Another work <br />
 This work focus on **[matrix decomposition]**, we all know that MF could be viewed as a special case of FM, another way to say it, FM model could be used in **[matrix decomposition]**.<br />
 But if we want to put constraints on the result of matrix factorization, FM, or embedding ways may not work effectively. So we can transforme this problem into constrained programming solution problems.<br />
 Here is a simple attempt to use the Generalized reduced gradient method.<br />
